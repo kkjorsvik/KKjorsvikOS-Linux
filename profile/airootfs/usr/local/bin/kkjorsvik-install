@@ -75,7 +75,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 systemctl enable NetworkManager
 systemctl enable greetd
 systemctl set-default graphical.target
-useradd -m -G wheel "$NEWUSER"
+id "$NEWUSER" &>/dev/null || useradd -m -G wheel "$NEWUSER"
 echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/10-wheel
 chmod 0440 /etc/sudoers.d/10-wheel
 CHROOT
