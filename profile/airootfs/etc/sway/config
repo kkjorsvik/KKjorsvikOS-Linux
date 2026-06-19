@@ -130,3 +130,9 @@ mode "resize" {
     bindsym $mod+r mode "default"
 }
 bindsym $mod+r mode "resize"
+
+### Drop-ins ###
+# Live-ISO-only tweaks live in /etc/sway/config.d/ (e.g. auto-open a terminal so
+# the installer is reachable without keybinds over a finicky VM console). The
+# installer copies only this file, NOT config.d/, so installed systems stay clean.
+include /etc/sway/config.d/*
