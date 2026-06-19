@@ -9,4 +9,4 @@ if [[ -z "$ISO" ]]; then
 fi
 echo ">> Booting $ISO"
 # Drop -enable-kvm if /dev/kvm isn't accessible (slower but works).
-qemu-system-x86_64 -enable-kvm -m 2G -smp 2 -cdrom "$ISO" -boot d
+qemu-system-x86_64 -enable-kvm -m 4G -smp 2 -vga virtio -display gtk -cdrom "$ISO" -boot d
