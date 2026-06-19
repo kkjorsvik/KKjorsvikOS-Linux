@@ -50,6 +50,9 @@ sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
 locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 systemctl enable NetworkManager
+# Brand the installed GRUB menu. grub-mkconfig reads GRUB_DISTRIBUTOR (not
+# os-release) and always appends " Linux", so this yields "KKjorsvik OS Linux".
+sed -i 's/^GRUB_DISTRIBUTOR=.*/GRUB_DISTRIBUTOR="KKjorsvik OS"/' /etc/default/grub
 grub-install --target=i386-pc --recheck "$DISK"
 grub-mkconfig -o /boot/grub/grub.cfg
 CHROOT
