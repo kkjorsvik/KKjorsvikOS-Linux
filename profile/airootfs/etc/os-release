@@ -1,0 +1,8 @@
+NAME="KKjorsvik OS"
+PRETTY_NAME="KKjorsvik OS"
+ID=kkjorsvik
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;120;170;255"
+HOME_URL="https://github.com/kkjorsvik/kkjorsvik-os"
+LOGO=archlinux-logo
