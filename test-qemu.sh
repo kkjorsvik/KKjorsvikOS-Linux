@@ -8,5 +8,8 @@ if [[ -z "$ISO" ]]; then
   exit 1
 fi
 echo ">> Booting $ISO"
+echo "   sway tip: click the window + Ctrl+Alt+G to grab the keyboard (otherwise"
+echo "   your host WM eats Super). A bare sway session is a blank gray screen;"
+echo "   Super+Return opens a terminal. Ctrl+Alt+G again releases the grab."
 # Drop -enable-kvm if /dev/kvm isn't accessible (slower but works).
-qemu-system-x86_64 -enable-kvm -m 2G -smp 2 -cdrom "$ISO" -boot d
+qemu-system-x86_64 -enable-kvm -m 4G -smp 2 -vga virtio -display gtk -cdrom "$ISO" -boot d
