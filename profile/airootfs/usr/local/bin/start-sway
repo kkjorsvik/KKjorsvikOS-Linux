@@ -1,0 +1,4 @@
+#!/bin/sh
+# Launch sway. Allow software (llvmpipe) rendering so it also runs in GPU-less VMs.
+export WLR_RENDERER_ALLOW_SOFTWARE=1
+exec sway

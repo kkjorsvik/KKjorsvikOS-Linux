@@ -126,3 +126,10 @@ xdg-utils
 xfsprogs
 xl2tpd
 zsh
+
+# --- KKjorsvik desktop (sway, Phase 1) ---
+sway
+foot
+greetd
+greetd-tuigreet
+polkit
