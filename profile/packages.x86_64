@@ -133,3 +133,26 @@ foot
 greetd
 greetd-tuigreet
 polkit
+
+# --- KKjorsvik desktop bundle (sway, Phase 2) ---
+waybar
+fuzzel
+mako
+swaylock
+swayidle
+swaybg
+grim
+slurp
+wl-clipboard
+pipewire
+wireplumber
+pipewire-pulse
+pavucontrol
+brightnessctl
+xdg-desktop-portal-wlr
+xdg-desktop-portal-gtk
+ttf-jetbrains-mono-nerd
+polkit-gnome
+gvfs
+chromium
+thunar

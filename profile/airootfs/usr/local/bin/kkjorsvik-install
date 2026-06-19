@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-# KKjorsvik OS installer — BIOS/GPT + GRUB. Run as root from the live ISO.
-# WARNING: erases the target disk.
+# KKjorsvik OS installer — BIOS/GPT + GRUB, sway desktop + a user account.
+# Run as root from the live ISO. WARNING: erases the target disk.
 set -euo pipefail
 
 DISK="${1:-/dev/sda}"
 
-# Always leave the target unmounted on exit (success or failure), so a retry
-# after an error doesn't hit a busy /mnt.
 cleanup() { umount -R /mnt 2>/dev/null || true; }
 trap cleanup EXIT
 
@@ -15,13 +13,15 @@ echo "Target disk: $DISK"
 lsblk "$DISK"
 read -rp "This will ERASE $DISK. Type YES to continue: " confirm
 [[ "$confirm" == "YES" ]] || { echo "Aborted."; exit 1; }
+read -rp "Username for your new user account: " NEWUSER
+[[ -n "$NEWUSER" ]] || { echo "Username required."; exit 1; }
 
 echo ">> Partitioning $DISK (GPT: 1M BIOS-boot + rest root)..."
 sgdisk --zap-all "$DISK"
 sgdisk -n1:0:+1M  -t1:ef02 -c1:"BIOS boot" "$DISK"
 sgdisk -n2:0:0    -t2:8300 -c2:"KKjorsvik root" "$DISK"
 partprobe "$DISK"
-udevadm settle   # wait for the new partition device nodes before formatting
+udevadm settle
 
 # Partition node naming: /dev/sda2, but /dev/nvme0n1p2.
 if [[ "$DISK" == *nvme* ]]; then ROOT="${DISK}p2"; else ROOT="${DISK}2"; fi
@@ -30,18 +30,38 @@ echo ">> Formatting $ROOT as ext4..."
 mkfs.ext4 -F "$ROOT"
 mount "$ROOT" /mnt
 
-echo ">> Installing base system with pacstrap..."
-pacstrap -K /mnt base linux linux-firmware grub vim sudo networkmanager
+echo ">> Installing base system + sway desktop with pacstrap (this takes a while)..."
+pacstrap -K /mnt \
+  base linux linux-firmware grub vim sudo networkmanager \
+  sway foot greetd greetd-tuigreet polkit \
+  waybar fuzzel mako swaylock swayidle swaybg grim slurp wl-clipboard \
+  pipewire wireplumber pipewire-pulse pavucontrol brightnessctl \
+  xdg-desktop-portal-wlr xdg-desktop-portal-gtk ttf-jetbrains-mono-nerd \
+  polkit-gnome gvfs chromium thunar
 
 echo ">> Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
-echo ">> Applying KKjorsvik branding to the installed system..."
+echo ">> Applying KKjorsvik branding + desktop configs to the target..."
 cp /etc/os-release /mnt/etc/os-release
 echo kkjorsvik > /mnt/etc/hostname
+# Canonical configs already live in this ISO — copy them onto the target (DRY).
+install -Dm755 /usr/local/bin/start-sway /mnt/usr/local/bin/start-sway
+install -Dm644 /etc/sway/config /mnt/etc/sway/config
+for d in waybar foot fuzzel mako; do
+  [ -e "/etc/xdg/$d" ] && cp -rT "/etc/xdg/$d" "/mnt/etc/xdg/$d"
+done
+# Installed-system login: tuigreet prompt (not autologin) -> sway.
+install -d /mnt/etc/greetd
+cat > /mnt/etc/greetd/config.toml <<'EOF'
+[terminal]
+vt = 1
 
-# Unquoted heredoc: $DISK below expands HERE (in this script) before being
-# handed to the chroot shell. No other $-expansions exist in the body.
+[default_session]
+command = "tuigreet --time --remember --cmd /usr/local/bin/start-sway"
+user = "greeter"
+EOF
+
 echo ">> Configuring the installed system in chroot..."
 arch-chroot /mnt /bin/bash -euo pipefail <<CHROOT
 ln -sf /usr/share/zoneinfo/UTC /etc/localtime
@@ -49,19 +69,23 @@ hwclock --systohc || true
 sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
 locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
-systemctl enable NetworkManager
-# Brand the installed GRUB menu. grub-mkconfig reads GRUB_DISTRIBUTOR (not
-# os-release) and always appends " Linux", so this yields "KKjorsvik OS Linux".
 sed -i 's/^GRUB_DISTRIBUTOR=.*/GRUB_DISTRIBUTOR="KKjorsvik OS"/' /etc/default/grub
 grub-install --target=i386-pc --recheck "$DISK"
 grub-mkconfig -o /boot/grub/grub.cfg
+systemctl enable NetworkManager
+systemctl enable greetd
+systemctl set-default graphical.target
+id "$NEWUSER" &>/dev/null || useradd -m -G wheel "$NEWUSER"
+echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/10-wheel
+chmod 0440 /etc/sudoers.d/10-wheel
 CHROOT
 
-# passwd runs OUTSIDE the heredoc so it gets a real terminal (the heredoc was
-# the chroot shell's stdin, which would starve interactive passwd of input).
-echo ">> Set the root password for your new KKjorsvik OS install:"
+echo ">> Set the password for root:"
 arch-chroot /mnt passwd
+echo ">> Set the password for $NEWUSER:"
+arch-chroot /mnt passwd "$NEWUSER"
 
 echo ">> Unmounting..."
 umount -R /mnt
 echo "=== Done. Remove the ISO and reboot into KKjorsvik OS. ==="
+echo "    Log in at the greeter as '$NEWUSER'."
