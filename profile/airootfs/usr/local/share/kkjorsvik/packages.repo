@@ -1,0 +1,170 @@
+# KKjorsvik OS — official-repo package manifest.
+# Installed by kkjorsvik-setup via: pacman -S --needed -
+# One package per line. '#' comments and blank lines are ignored.
+# This is the curated "ideal dev box", not a clone — edit deliberately.
+
+# === Core CLI & system ===
+base-devel
+git
+fish
+neovim
+vim
+tmux
+fastfetch
+btop
+fd
+fzf
+ripgrep
+tree
+ranger
+less
+plocate
+lsof
+net-tools
+bind
+usbutils
+smartmontools
+rsync
+rclone
+sshfs
+openssh
+wget
+man-db
+man-pages
+zip
+unzip
+
+# === Git & dev tooling ===
+git-delta
+lazygit
+lazydocker
+github-cli
+gitleaks
+git-filter-repo
+pre-commit
+glow
+tldr
+cloc
+chezmoi
+
+# === Languages & runtimes ===
+go
+go-task
+golangci-lint
+nodejs
+npm
+pnpm
+python-pip
+python-pipx
+python-virtualenv
+uv
+mise
+elixir
+erlang
+php
+php-fpm
+php-gd
+php-pgsql
+php-sqlite
+composer
+maven
+gradle
+julia
+hugo
+protobuf
+
+# === Cloud / DevOps ===
+docker
+docker-compose
+kubectl
+opentofu
+aws-cli-v2
+tailscale
+nginx
+postgresql
+mkcert
+ollama
+woodpecker-cli
+
+# === Sway desktop (Wayland) ===
+sway
+swaybg
+swaylock
+swayidle
+waybar
+foot
+fuzzel
+mako
+grim
+slurp
+wl-clipboard
+brightnessctl
+playerctl
+polkit
+polkit-gnome
+nwg-look
+xdg-desktop-portal-wlr
+xdg-desktop-portal-gtk
+xdg-utils
+gvfs
+
+# === Audio (PipeWire) ===
+pipewire
+pipewire-alsa
+pipewire-jack
+pipewire-pulse
+wireplumber
+gst-plugin-pipewire
+pavucontrol
+
+# === Bluetooth ===
+bluez
+bluez-utils
+blueman
+
+# === Printing & scanning ===
+cups
+cups-pdf
+gutenprint
+sane
+sane-airscan
+simple-scan
+
+# === Hardware ===
+fprintd
+solaar
+
+# === GUI apps ===
+ghostty
+zed
+code
+firefox
+chromium
+thunar
+thunar-archive-plugin
+thunar-volman
+tumbler
+file-roller
+okular
+gwenview
+obsidian
+discord
+lutris
+flameshot
+
+# === Terminal AI / CLIs ===
+gemini-cli
+opencode
+
+# === Fonts ===
+ttf-jetbrains-mono-nerd
+ttf-firacode-nerd
+ttf-nerd-fonts-symbols
+ttf-nerd-fonts-symbols-mono
+noto-fonts
+noto-fonts-emoji
+woff2-font-awesome
+
+# === Distro-building (optional — keep if you build kkjorsvik-os on this box) ===
+archiso
+qemu-full
