@@ -15,6 +15,10 @@ read -rp "This will ERASE $DISK. Type YES to continue: " confirm
 [[ "$confirm" == "YES" ]] || { echo "Aborted."; exit 1; }
 read -rp "Username for your new user account: " NEWUSER
 [[ -n "$NEWUSER" ]] || { echo "Username required."; exit 1; }
+DEFAULT_DOTFILES_URL="https://git.kkjorsvik.com/kkjorsvik/dotfiles.git"
+read -rp "Dotfiles git repo URL [${DEFAULT_DOTFILES_URL}] (type 'none' to skip): " DOTFILES_URL
+DOTFILES_URL="${DOTFILES_URL:-$DEFAULT_DOTFILES_URL}"
+[[ "$DOTFILES_URL" == "none" ]] && DOTFILES_URL=""
 
 echo ">> Partitioning $DISK (GPT: 1M BIOS-boot + rest root)..."
 sgdisk --zap-all "$DISK"
@@ -30,14 +34,12 @@ echo ">> Formatting $ROOT as ext4..."
 mkfs.ext4 -F "$ROOT"
 mount "$ROOT" /mnt
 
-echo ">> Installing base system + sway desktop with pacstrap (this takes a while)..."
+echo ">> Installing the minimal bootable system (base + sway login)..."
+echo "   The full curated software set is installed later by 'kkjorsvik-setup'."
 pacstrap -K /mnt \
-  base linux linux-firmware grub vim sudo networkmanager \
+  base linux linux-firmware grub sudo vim networkmanager \
   sway foot greetd greetd-tuigreet polkit \
-  waybar fuzzel mako swaylock swayidle swaybg grim slurp wl-clipboard \
-  pipewire wireplumber pipewire-pulse pavucontrol brightnessctl \
-  xdg-desktop-portal-wlr xdg-desktop-portal-gtk ttf-jetbrains-mono-nerd \
-  polkit-gnome gvfs chromium thunar
+  pipewire wireplumber pipewire-pulse
 
 echo ">> Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -45,12 +47,17 @@ genfstab -U /mnt >> /mnt/etc/fstab
 echo ">> Applying KKjorsvik branding + desktop configs to the target..."
 cp /etc/os-release /mnt/etc/os-release
 echo kkjorsvik > /mnt/etc/hostname
-# Canonical configs already live in this ISO — copy them onto the target (DRY).
+# Minimal sway fallback so the box boots to a usable session before
+# kkjorsvik-setup runs. The rich desktop config is owned by chezmoi (~/.config).
 install -Dm755 /usr/local/bin/start-sway /mnt/usr/local/bin/start-sway
 install -Dm644 /etc/sway/config /mnt/etc/sway/config
-for d in waybar foot fuzzel mako; do
-  [ -e "/etc/xdg/$d" ] && cp -rT "/etc/xdg/$d" "/mnt/etc/xdg/$d"
-done
+
+echo ">> Installing curated package manifests + kkjorsvik-setup into the target..."
+install -Dm644 /usr/local/share/kkjorsvik/packages.repo /mnt/usr/local/share/kkjorsvik/packages.repo
+install -Dm644 /usr/local/share/kkjorsvik/packages.aur  /mnt/usr/local/share/kkjorsvik/packages.aur
+install -Dm755 /usr/local/bin/kkjorsvik-setup           /mnt/usr/local/bin/kkjorsvik-setup
+install -d /mnt/etc/kkjorsvik
+printf '%s\n' "$DOTFILES_URL" > /mnt/etc/kkjorsvik/dotfiles-url
 # Installed-system login: tuigreet prompt (not autologin) -> sway.
 install -d /mnt/etc/greetd
 cat > /mnt/etc/greetd/config.toml <<'EOF'
@@ -88,4 +95,6 @@ arch-chroot /mnt passwd "$NEWUSER"
 echo ">> Unmounting..."
 umount -R /mnt
 echo "=== Done. Remove the ISO and reboot into KKjorsvik OS. ==="
-echo "    Log in at the greeter as '$NEWUSER'."
+echo "    1. Log in at the greeter as '$NEWUSER'."
+echo "    2. Connect to the network if needed (nmtui)."
+echo "    3. Run 'kkjorsvik-setup' to install your curated software + dotfiles."
