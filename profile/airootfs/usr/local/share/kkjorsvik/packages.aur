@@ -1,0 +1,27 @@
+# KKjorsvik OS — AUR package manifest.
+# Installed by kkjorsvik-setup via paru (bootstrapped automatically): paru -S --needed -
+# One package per line. '#' comments and blank lines are ignored.
+
+# === AI / dev CLIs ===
+claude-code
+openai-codex-bin
+qwen-code-bin
+
+# === Editors / IDEs ===
+cursor-bin
+sublime-text-4
+jetbrains-toolbox
+
+# === Runtimes ===
+bun-bin
+
+# === Cloud / DevOps ===
+flyctl
+rancher-k3d-bin
+aws-cdk
+
+# === Apps ===
+slack-desktop
+proton-mail-bin
+anytype-bin
+hoppscotch-bin

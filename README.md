@@ -49,15 +49,38 @@ Boot the ISO (in a VM or on hardware — use **BIOS/SeaBIOS**, not UEFI), then r
 
 ```sh
 lsblk                          # confirm the target disk
-kkjorsvik-install /dev/sda     # type YES, then set a root password
+kkjorsvik-install /dev/sda     # type YES, pick a username, accept the dotfiles URL
 ```
 
-It partitions (GPT: 1 MB BIOS-boot + ext4 root), `pacstrap`s a base system,
-installs GRUB, copies the KKjorsvik branding, and enables NetworkManager.
-Reboot from the disk and you're in a persistent KKjorsvik OS.
+It partitions (GPT: 1 MB BIOS-boot + ext4 root), `pacstrap`s a **minimal bootable
+sway system**, installs GRUB, copies the KKjorsvik branding, creates your user,
+records your dotfiles repo URL, and enables NetworkManager + greetd. Reboot from
+the disk and you're at the login greeter. The curated software comes next.
 
 > ⚠️ `kkjorsvik-install` **erases the target disk**. Only run it on a disk you mean
 > to wipe (a throwaway VM is the safe way to try it).
+
+## Make it your dev box
+
+The installer lays down a minimal bootable sway system and records your dotfiles
+repo URL. The curated software and your configs are applied on first boot by
+`kkjorsvik-setup`:
+
+1. Boot the installed system and log in as your user.
+2. Bring up networking if needed: `nmtui`.
+3. Run the provisioner:
+
+   ```sh
+   kkjorsvik-setup
+   ```
+
+It installs the official-repo packages (`/usr/local/share/kkjorsvik/packages.repo`),
+bootstraps `paru` and installs the AUR packages (`packages.aur`), then applies your
+dotfiles with `chezmoi init --apply <your-repo>`. It is **idempotent** — re-run it
+any time after editing a manifest; already-installed packages are skipped.
+
+Curate your software by editing the two manifest files in
+`profile/airootfs/usr/local/share/kkjorsvik/` and rebuilding the ISO.
 
 ## Repository layout
 
@@ -71,14 +94,15 @@ docs/           design specs and implementation plans
 
 ## Status
 
-- ✅ Branded live ISO (boots to TTY)
-- ✅ Self-installer (`kkjorsvik-install`)
+- ✅ Branded live ISO (boots to sway)
+- ✅ Self-installer (`kkjorsvik-install`) with user account + dotfiles URL
+- ✅ Curated dev-box provisioning (`kkjorsvik-setup`: repo + AUR + chezmoi)
 
 ### Roadmap / ideas
 
-- Trim the package set toward a deliberately minimal base.
-- Add a desktop layer (TTY → Wayland/X).
-- Installer niceties: timezone, user account, and mirror prompts.
+- Build the chezmoi dotfiles repo (harvest configs; port i3 → sway).
+- Auto-run `kkjorsvik-setup` on first boot; enable services (docker/bluetooth/cups).
+- Installer niceties: timezone and mirror prompts.
 
 ## Credits
 
