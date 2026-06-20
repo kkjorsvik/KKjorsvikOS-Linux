@@ -92,7 +92,7 @@ swaybg
 swaylock
 swayidle
 waybar
-foot
+foot          # tiny native-Wayland fallback terminal (guarantees the bootable floor)
 fuzzel
 mako
 grim
@@ -135,7 +135,7 @@ fprintd
 solaar
 
 # === GUI apps ===
-ghostty
+alacritty     # daily-driver terminal (used with tmux)
 zed
 code
 firefox
