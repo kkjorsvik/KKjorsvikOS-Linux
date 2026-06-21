@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 
 VM_DIR="${VM_DIR:-$HOME/vm/kkjorsvik-os}"
 DISK="$VM_DIR/disk.qcow2"
-DISK_SIZE="${DISK_SIZE:-25G}"
+DISK_SIZE="${DISK_SIZE:-50G}"
 RAM="${RAM:-8G}"
 SMP="${SMP:-4}"
 
