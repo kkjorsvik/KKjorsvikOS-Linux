@@ -44,8 +44,12 @@ if ! command -v paru >/dev/null; then
     failed+=("paru bootstrap")
   else
     tmp="$(mktemp -d)"
-    if git clone --depth=1 https://aur.archlinux.org/paru-bin.git "$tmp/paru-bin" \
-       && ( cd "$tmp/paru-bin" && makepkg -si --noconfirm ); then
+    # Build paru from SOURCE, not paru-bin: the prebuilt -bin links a fixed
+    # libalpm soname and breaks whenever pacman bumps it (e.g. .15 -> .16),
+    # which is exactly what stranded a fresh box. Source paru compiles against
+    # the box's current libalpm; makepkg -s pulls the rust/cargo makedeps itself.
+    if git clone --depth=1 https://aur.archlinux.org/paru.git "$tmp/paru" \
+       && ( cd "$tmp/paru" && makepkg -si --noconfirm ); then
       log "paru installed."
     else
       warn "paru bootstrap failed; skipping AUR stage."
@@ -71,8 +75,16 @@ if [[ -s "$URL_FILE" ]]; then
     log "Dotfiles URL file is empty; skipping dotfiles."
   elif command -v chezmoi >/dev/null; then
     log "Applying dotfiles from $url via chezmoi ..."
-    if ! chezmoi init --apply "$url"; then
-      warn "chezmoi failed to apply dotfiles."
+    # pipefail (set above) makes the pipeline return chezmoi's status, not tee's,
+    # so a failure is still caught while its full output is preserved for triage.
+    clog="$(mktemp -t kkjorsvik-chezmoi.XXXXXX.log)"
+    if chezmoi init --apply "$url" 2>&1 | tee "$clog"; then
+      rm -f "$clog"
+    else
+      warn "chezmoi failed to apply dotfiles from $url"
+      warn "  full output saved to: $clog"
+      warn "  likely causes: host unreachable, TLS cert not trusted, bad URL, or a template error."
+      warn "  reproduce by hand: chezmoi init --apply '$url'"
       failed+=("dotfiles")
     fi
   else
