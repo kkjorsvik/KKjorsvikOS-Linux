@@ -2,3 +2,6 @@
 work/
 out/
 *.qcow2
+
+# brainstorming visual-companion scratch
+.superpowers/

@@ -1,28 +1,30 @@
 * {
   font-family: "JetBrainsMono Nerd Font", monospace;
-  font-size: 13px;
+  font-size: 12px;
   min-height: 0;
 }
 window#waybar {
-  background-color: #282a36;
-  color: #f8f8f2;
+  background-color: #1d2021;
+  color: #e0cfa0;
+  border-radius: 7px;
 }
 #workspaces button {
-  padding: 0 8px;
+  margin: 3px 2px;
+  padding: 0 7px;
   background-color: transparent;
-  color: #6272a4;
+  color: #a89984;
+  border-radius: 6px;
 }
 #workspaces button.focused {
-  color: #f8f8f2;
-  background-color: #44475a;
-  border-bottom: 2px solid #bd93f9;
+  color: #1d2021;
+  background-color: #bcc44a;
 }
 #mode, #clock, #cpu, #memory, #network, #pulseaudio, #tray {
   padding: 0 10px;
 }
-#clock { color: #8be9fd; }
-#cpu { color: #50fa7b; }
-#memory { color: #ffb86c; }
-#network { color: #bd93f9; }
-#pulseaudio { color: #ff79c6; }
-#pulseaudio.muted { color: #6272a4; }
+#clock { color: #8ec0a8; }
+#cpu { color: #9bcb72; }
+#memory { color: #ecb142; }
+#network { color: #bcc44a; }
+#pulseaudio { color: #e08bab; }
+#pulseaudio.muted { color: #a89984; }

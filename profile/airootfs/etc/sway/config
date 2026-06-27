@@ -1,26 +1,26 @@
 # KKjorsvik OS — sway config (Phase 2)
-# Clean distro default, mirroring the maintainer's i3 keybinds. Dracula theme.
+# Clean distro default, mirroring the maintainer's i3 keybinds. Gruvbox Material theme.
 
 set $mod Mod4
 set $term foot
 set $menu fuzzel
 set $browser chromium
 set $files thunar
-set $lock swaylock -f -c 282a36
+set $lock swaylock -f -c 282828
 
 # No Xwayland (chromium runs native Wayland; no X apps shipped).
 xwayland disable
 
 font pango:JetBrainsMono Nerd Font 10
 
-### Appearance (Dracula) ###
+### Appearance (Gruvbox Material) ###
 # class                 border  bg      text    indicator child_border
-client.focused          #bd93f9 #bd93f9 #f8f8f2 #ff79c6   #bd93f9
-client.focused_inactive #44475a #44475a #f8f8f2 #44475a   #44475a
-client.unfocused        #282a36 #282a36 #6272a4 #282a36   #282a36
-client.urgent           #ff5555 #ff5555 #f8f8f2 #ff5555   #ff5555
+client.focused          #bcc44a #bcc44a #1d2021 #e08bab   #bcc44a
+client.focused_inactive #3c3836 #3c3836 #e0cfa0 #3c3836   #3c3836
+client.unfocused        #282828 #282828 #a89984 #282828   #282828
+client.urgent           #ea6962 #ea6962 #1d2021 #ea6962   #ea6962
 
-output * bg #282a36 solid_color
+output * bg #282828 solid_color
 default_border pixel 2
 gaps inner 6
 
