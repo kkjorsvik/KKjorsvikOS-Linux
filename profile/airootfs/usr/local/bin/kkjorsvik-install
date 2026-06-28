@@ -32,6 +32,10 @@ if ! ping -c1 -W3 archlinux.org >/dev/null 2>&1; then
   exit 1
 fi
 
+echo ">> Reading base package manifest..."
+mapfile -t PKGS < <(pkglist "$SHARE/packages.base")
+[[ ${#PKGS[@]} -gt 0 ]] || { echo "!! Empty or missing manifest: $SHARE/packages.base"; exit 1; }
+
 echo ">> Partitioning $DISK (GPT: 1M BIOS-boot + rest root)..."
 sgdisk --zap-all "$DISK"
 sgdisk -n1:0:+1M  -t1:ef02 -c1:"BIOS boot" "$DISK"
@@ -48,8 +52,7 @@ mount "$ROOT" /mnt
 
 echo ">> Installing the bootable, themed desktop from packages.base..."
 echo "   The curated dev toolchain is installed later by 'kkjorsvik-setup'."
-# shellcheck disable=SC2046  # word-splitting the package list is intended
-pacstrap -K /mnt $(pkglist "$SHARE/packages.base")
+pacstrap -K /mnt "${PKGS[@]}"
 
 echo ">> Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -64,11 +67,15 @@ install -Dm644 /etc/sway/config /mnt/etc/sway/config
 # $term at parse time and includes config.d last, so a drop-in can't override it —
 # hence a target-side sed.
 sed -i 's/^set \$term foot/set $term alacritty/' /mnt/etc/sway/config
+grep -q '^set \$term alacritty' /mnt/etc/sway/config \
+  || { echo "!! Failed to set alacritty as the default terminal (sway config drift?)."; exit 1; }
 # Themed configs for the shell binaries (waybar/mako/fuzzel/foot/alacritty).
 for d in waybar mako fuzzel foot alacritty; do
   if [[ -d /etc/xdg/$d ]]; then
     mkdir -p "/mnt/etc/xdg/$d"
     cp -a "/etc/xdg/$d/." "/mnt/etc/xdg/$d/"
+  else
+    echo "!! Note: /etc/xdg/$d not present in the live env; skipping its config."
   fi
 done
 # Branded wallpaper (sway's output bg points at this absolute path).
