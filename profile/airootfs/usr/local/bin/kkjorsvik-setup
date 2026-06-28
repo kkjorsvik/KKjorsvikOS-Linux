@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# kkjorsvik-setup — provision a fresh KKjorsvik OS install into the curated dev box.
-# Idempotent and safe to re-run. Run as your NORMAL user (not root) after first login.
+# kkjorsvik-setup — add the curated dev toolchain, apps, and optional dotfiles
+# on top of the already-running themed desktop. Idempotent and safe to re-run.
+# Run as your NORMAL user (not root) after first login.
 set -uo pipefail
 
 SHARE=/usr/local/share/kkjorsvik
@@ -100,4 +101,4 @@ if ((${#failed[@]})); then
   warn "Fix the cause, then re-run 'kkjorsvik-setup' — it is safe to run again."
   exit 1
 fi
-log "KKjorsvik dev box provisioning complete. A reboot is recommended."
+log "Dev toolchain, apps, and dotfiles installed. A reboot is recommended."
