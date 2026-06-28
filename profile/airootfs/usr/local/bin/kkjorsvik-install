@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# KKjorsvik OS installer — BIOS/GPT + GRUB, sway desktop + a user account.
+# KKjorsvik OS installer — BIOS/GPT + GRUB, themed sway desktop + a user account.
 # Run as root from the live ISO. WARNING: erases the target disk.
 set -euo pipefail
 
 DISK="${1:-/dev/sda}"
+SHARE=/usr/local/share/kkjorsvik
 
 cleanup() { umount -R /mnt 2>/dev/null || true; }
 trap cleanup EXIT
+
+# Strip '#' comments and blank lines from a manifest -> bare package names.
+pkglist() { sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e 's/^[[:space:]]*//' -e '/^$/d' "$1"; }
 
 echo "=== KKjorsvik OS installer ==="
 echo "Target disk: $DISK"
@@ -15,10 +19,18 @@ read -rp "This will ERASE $DISK. Type YES to continue: " confirm
 [[ "$confirm" == "YES" ]] || { echo "Aborted."; exit 1; }
 read -rp "Username for your new user account: " NEWUSER
 [[ -n "$NEWUSER" ]] || { echo "Username required."; exit 1; }
-DEFAULT_DOTFILES_URL="https://git.kkjorsvik.com/kkjorsvik/dotfiles.git"
-read -rp "Dotfiles git repo URL [${DEFAULT_DOTFILES_URL}] (type 'none' to skip): " DOTFILES_URL
-DOTFILES_URL="${DOTFILES_URL:-$DEFAULT_DOTFILES_URL}"
+# Dotfiles are OPT-IN: a fresh box is fully usable bare. Blank answer = none.
+read -rp "Dotfiles git repo URL [blank = none; e.g. https://git.kkjorsvik.com/kkjorsvik/dotfiles.git]: " DOTFILES_URL
+DOTFILES_URL="${DOTFILES_URL:-}"
 [[ "$DOTFILES_URL" == "none" ]] && DOTFILES_URL=""
+
+# Network is required: the base pacstrap (incl. firefox/alacritty) downloads packages.
+echo ">> Checking network connectivity..."
+if ! ping -c1 -W3 archlinux.org >/dev/null 2>&1; then
+  echo "!! No network detected. The installer downloads packages during pacstrap."
+  echo "   Connect first (run: nmtui), then re-run kkjorsvik-install."
+  exit 1
+fi
 
 echo ">> Partitioning $DISK (GPT: 1M BIOS-boot + rest root)..."
 sgdisk --zap-all "$DISK"
@@ -34,12 +46,10 @@ echo ">> Formatting $ROOT as ext4..."
 mkfs.ext4 -F "$ROOT"
 mount "$ROOT" /mnt
 
-echo ">> Installing the minimal bootable system (base + sway login)..."
-echo "   The full curated software set is installed later by 'kkjorsvik-setup'."
-pacstrap -K /mnt \
-  base linux linux-firmware grub sudo vim networkmanager \
-  sway foot greetd greetd-tuigreet polkit \
-  pipewire wireplumber pipewire-pulse
+echo ">> Installing the bootable, themed desktop from packages.base..."
+echo "   The curated dev toolchain is installed later by 'kkjorsvik-setup'."
+# shellcheck disable=SC2046  # word-splitting the package list is intended
+pacstrap -K /mnt $(pkglist "$SHARE/packages.base")
 
 echo ">> Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -47,15 +57,34 @@ genfstab -U /mnt >> /mnt/etc/fstab
 echo ">> Applying KKjorsvik branding + desktop configs to the target..."
 cp /etc/os-release /mnt/etc/os-release
 echo kkjorsvik > /mnt/etc/hostname
-# Minimal sway fallback so the box boots to a usable session before
-# kkjorsvik-setup runs. The rich desktop config is owned by chezmoi (~/.config).
 install -Dm755 /usr/local/bin/start-sway /mnt/usr/local/bin/start-sway
 install -Dm644 /etc/sway/config /mnt/etc/sway/config
+# Daily-driver terminal on the installed system is alacritty; the live ISO keeps
+# foot (its config.d/90-live-terminal.conf execs foot directly). sway substitutes
+# $term at parse time and includes config.d last, so a drop-in can't override it —
+# hence a target-side sed.
+sed -i 's/^set \$term foot/set $term alacritty/' /mnt/etc/sway/config
+# Themed configs for the shell binaries (waybar/mako/fuzzel/foot/alacritty).
+for d in waybar mako fuzzel foot alacritty; do
+  if [[ -d /etc/xdg/$d ]]; then
+    mkdir -p "/mnt/etc/xdg/$d"
+    cp -a "/etc/xdg/$d/." "/mnt/etc/xdg/$d/"
+  fi
+done
+# Branded wallpaper (sway's output bg points at this absolute path).
+install -Dm644 "$SHARE/wallpaper.png" "/mnt$SHARE/wallpaper.png"
+# One-time first-login nudge to run kkjorsvik-setup (installed systems only).
+install -Dm755 /usr/local/bin/kkjorsvik-welcome /mnt/usr/local/bin/kkjorsvik-welcome
+install -d /mnt/etc/sway/config.d
+cat > /mnt/etc/sway/config.d/20-welcome.conf <<'EOF'
+# Installed-system only: one-time first-login nudge to run kkjorsvik-setup.
+exec /usr/local/bin/kkjorsvik-welcome
+EOF
 
 echo ">> Installing curated package manifests + kkjorsvik-setup into the target..."
-install -Dm644 /usr/local/share/kkjorsvik/packages.repo /mnt/usr/local/share/kkjorsvik/packages.repo
-install -Dm644 /usr/local/share/kkjorsvik/packages.aur  /mnt/usr/local/share/kkjorsvik/packages.aur
-install -Dm755 /usr/local/bin/kkjorsvik-setup           /mnt/usr/local/bin/kkjorsvik-setup
+install -Dm644 "$SHARE/packages.repo" "/mnt$SHARE/packages.repo"
+install -Dm644 "$SHARE/packages.aur"  "/mnt$SHARE/packages.aur"
+install -Dm755 /usr/local/bin/kkjorsvik-setup "/mnt/usr/local/bin/kkjorsvik-setup"
 install -d /mnt/etc/kkjorsvik
 printf '%s\n' "$DOTFILES_URL" > /mnt/etc/kkjorsvik/dotfiles-url
 # Installed-system login: tuigreet prompt (not autologin) -> sway.
@@ -95,6 +124,7 @@ arch-chroot /mnt passwd "$NEWUSER"
 echo ">> Unmounting..."
 umount -R /mnt
 echo "=== Done. Remove the ISO and reboot into KKjorsvik OS. ==="
+echo "    You'll boot straight into a themed desktop (bar, wallpaper, launcher)."
 echo "    1. Log in at the greeter as '$NEWUSER'."
-echo "    2. Connect to the network if needed (nmtui)."
-echo "    3. Run 'kkjorsvik-setup' to install your curated software + dotfiles."
+echo "    2. A welcome note will remind you to run 'kkjorsvik-setup' for your"
+echo "       full dev toolchain, apps, and (optional) dotfiles."
