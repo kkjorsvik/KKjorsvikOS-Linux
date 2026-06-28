@@ -1,14 +1,14 @@
-# KKjorsvik OS — official-repo package manifest.
+# KKjorsvik OS — official-repo package manifest (curated dev pile).
 # Installed by kkjorsvik-setup via: pacman -S --needed -
+# The bootable desktop shell + alacritty + firefox + base fonts live in
+# packages.base (installed by kkjorsvik-install). Do NOT duplicate them here.
 # One package per line. '#' comments and blank lines are ignored.
-# This is the curated "ideal dev box", not a clone — edit deliberately.
 
 # === Core CLI & system ===
 base-devel
 git
 fish
 neovim
-vim
 tmux
 fastfetch
 btop
@@ -86,36 +86,12 @@ mkcert
 ollama
 woodpecker-cli
 
-# === Sway desktop (Wayland) ===
-sway
-swaybg
-swaylock
-swayidle
-waybar
-foot          # tiny native-Wayland fallback terminal (guarantees the bootable floor)
-fuzzel
-mako
-grim
-slurp
-wl-clipboard
-brightnessctl
-playerctl
-polkit
-polkit-gnome
+# === Desktop extras (shell itself is in packages.base) ===
 nwg-look
-xdg-desktop-portal-wlr
-xdg-desktop-portal-gtk
-xdg-utils
 gvfs
-
-# === Audio (PipeWire) ===
-pipewire
 pipewire-alsa
 pipewire-jack
-pipewire-pulse
-wireplumber
 gst-plugin-pipewire
-pavucontrol
 
 # === Bluetooth ===
 bluez
@@ -134,11 +110,9 @@ simple-scan
 fprintd
 solaar
 
-# === GUI apps ===
-alacritty     # daily-driver terminal (used with tmux)
+# === GUI apps (alacritty + firefox are in packages.base) ===
 zed
 code
-firefox
 chromium
 thunar
 thunar-archive-plugin
@@ -156,13 +130,9 @@ flameshot
 gemini-cli
 opencode
 
-# === Fonts ===
-ttf-jetbrains-mono-nerd
+# === Fonts (base fonts are in packages.base) ===
 ttf-firacode-nerd
-ttf-nerd-fonts-symbols
 ttf-nerd-fonts-symbols-mono
-noto-fonts
-noto-fonts-emoji
 woff2-font-awesome
 
 # === Distro-building (optional — keep if you build kkjorsvik-os on this box) ===
