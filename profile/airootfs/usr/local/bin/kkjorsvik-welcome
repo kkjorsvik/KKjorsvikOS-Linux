@@ -1,0 +1,12 @@
+#!/bin/sh
+# kkjorsvik-welcome — one-time first-login nudge to run kkjorsvik-setup.
+# Fires once per user (sentinel under ~/.config/kkjorsvik), then never again.
+# Installed-system only: kkjorsvik-install wires it via /etc/sway/config.d/.
+stamp="${XDG_CONFIG_HOME:-$HOME/.config}/kkjorsvik/.welcomed"
+[ -e "$stamp" ] && exit 0
+mkdir -p "$(dirname "$stamp")"
+# Give mako a moment to start after the sway session comes up.
+sleep 3
+notify-send -u normal -t 0 "Welcome to KKjorsvik OS" \
+  "Run 'kkjorsvik-setup' in a terminal to install your dev tools, apps, and dotfiles."
+: > "$stamp"
