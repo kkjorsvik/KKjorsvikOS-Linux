@@ -20,7 +20,7 @@ client.focused_inactive #3c3836 #3c3836 #e0cfa0 #3c3836   #3c3836
 client.unfocused        #282828 #282828 #a89984 #282828   #282828
 client.urgent           #ea6962 #ea6962 #1d2021 #ea6962   #ea6962
 
-output * bg #282828 solid_color
+output * bg /usr/local/share/kkjorsvik/wallpaper.png fill
 default_border pixel 2
 gaps inner 6
 
