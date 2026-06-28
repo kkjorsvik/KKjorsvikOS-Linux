@@ -25,10 +25,15 @@ DOTFILES_URL="${DOTFILES_URL:-}"
 [[ "$DOTFILES_URL" == "none" ]] && DOTFILES_URL=""
 
 # Network is required: the base pacstrap (incl. firefox/alacritty) downloads packages.
+# Probe a TCP connection to the mirror's HTTPS port (resolves DNS + tests the port
+# pacstrap actually uses) rather than ICMP ping — ping is unreliable through NAT/slirp
+# (e.g. QEMU user networking) and in ICMP-filtered networks, which would wrongly abort
+# an otherwise-working install.
 echo ">> Checking network connectivity..."
-if ! ping -c1 -W3 archlinux.org >/dev/null 2>&1; then
-  echo "!! No network detected. The installer downloads packages during pacstrap."
-  echo "   Connect first (run: nmtui), then re-run kkjorsvik-install."
+if ! timeout 5 bash -c 'exec 3<>/dev/tcp/archlinux.org/443' 2>/dev/null; then
+  echo "!! No network detected (couldn't reach archlinux.org:443)."
+  echo "   The installer downloads packages during pacstrap. Connect first"
+  echo "   (run: nmtui), then re-run kkjorsvik-install."
   exit 1
 fi
 
