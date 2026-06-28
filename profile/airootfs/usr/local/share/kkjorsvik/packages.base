@@ -1,0 +1,57 @@
+# KKjorsvik OS — base manifest: the bootable, usable desktop.
+# Installed by kkjorsvik-install via: pacstrap -K /mnt <this list>
+# Everything here is present on FIRST BOOT, before kkjorsvik-setup and before any
+# dotfiles. The curated dev toolchain lives in packages.repo / packages.aur.
+# One package per line. '#' comments and blank lines are ignored.
+
+# === OS floor ===
+base
+linux
+linux-firmware
+grub
+sudo
+vim
+networkmanager
+
+# === Login + session ===
+greetd
+greetd-tuigreet
+polkit
+polkit-gnome
+
+# === Sway desktop shell ===
+sway
+swaybg
+swaylock
+swayidle
+waybar
+fuzzel
+mako
+foot          # guaranteed native-Wayland fallback terminal
+grim
+slurp
+wl-clipboard
+brightnessctl
+playerctl
+libnotify     # provides notify-send for the first-login welcome
+
+# === Desktop portals ===
+xdg-desktop-portal-wlr
+xdg-desktop-portal-gtk
+xdg-utils
+
+# === Audio (base subset; extras live in packages.repo) ===
+pipewire
+wireplumber
+pipewire-pulse
+pavucontrol
+
+# === Fonts (shell needs these to render correctly) ===
+ttf-jetbrains-mono-nerd
+ttf-nerd-fonts-symbols
+noto-fonts
+noto-fonts-emoji
+
+# === Default terminal + browser (usable out of the box) ===
+alacritty
+firefox
